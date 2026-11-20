@@ -1,0 +1,6 @@
+deps/
+dist/
+config.json
+*.log
+*.tmp
+.vs/

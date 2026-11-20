@@ -1,0 +1,2270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zapret</title>
+<style>
+  :root {
+    --bg-deep: #0f0f10;
+    --bg-page: #141415;
+    --bg-card: #19191b;
+    --bg-raised: #232325;
+    --bg-hover: #2a2a2d;
+    --border: rgba(237, 237, 237, 0.08);
+    --border-strong: rgba(237, 237, 237, 0.14);
+    --highlight-top: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+    --text-primary: #ededed;
+    --text-secondary: #a1a1a6;
+    --text-muted: #85858b;
+
+    --ok: #4cc38a;
+    --warn: #e5a93c;
+    --err: #e5484d;
+    --idle: #5a5a60;
+
+    --font-sans: 'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Cascadia Mono', 'JetBrains Mono', 'Consolas', monospace;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+    --r-sm: 6px;
+    --r-md: 8px;
+    --r-lg: 12px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid rgba(237, 237, 237, 0.32);
+    outline-offset: 2px;
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Shell layout */
+  .app {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    height: 100vh;
+    background: var(--bg-page);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--bg-deep);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    min-height: 0;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 32px;
+    margin-bottom: 16px;
+    padding: 0 4px;
+    cursor: default;
+  }
+
+  .brand-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+
+  .brand-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0;
+  }
+
+  .brand-ver {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* View mode segmented toggle */
+  .seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: 20px;
+  }
+
+  .seg button {
+    height: 28px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease);
+  }
+
+  .seg button:hover {
+    color: var(--text-secondary);
+  }
+
+  .seg button.active {
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    border-color: var(--border);
+    box-shadow: var(--highlight-top);
+  }
+
+  /* Nav list */
+  .nav-group-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 0 8px;
+    margin-bottom: 8px;
+  }
+
+  .nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: var(--r-md);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease);
+  }
+
+  .nav-item:hover {
+    background: rgba(237, 237, 237, 0.04);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    border-color: var(--border);
+    box-shadow: var(--highlight-top);
+  }
+
+  .nav-item .ico {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    transition: color 140ms var(--ease);
+  }
+
+  .nav-item.active .ico,
+  .nav-item:hover .ico {
+    color: var(--text-primary);
+  }
+
+  .nav-item .nav-label {
+    font-size: 13px;
+    font-weight: 500;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Signature 6px live status dot */
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--idle);
+    flex-shrink: 0;
+    transition: background-color 180ms var(--ease);
+  }
+  .dot.ok { background: var(--ok); }
+  .dot.warn { background: var(--warn); }
+  .dot.err { background: var(--err); }
+
+  /* Sidebar footer */
+  .sidebar-footer {
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .meta-key {
+    color: var(--text-muted);
+  }
+
+  .meta-val {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .meta-val.ok { color: var(--ok); }
+  .meta-val.err { color: var(--err); }
+
+  /* Main column */
+  .main-wrap {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    background: var(--bg-page);
+  }
+
+  /* Top titlebar */
+  .topbar {
+    height: 48px;
+    padding: 0 12px 0 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    background: var(--bg-page);
+  }
+
+  .topbar-drag {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .page-heading {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-ghost {
+    height: 30px;
+    padding: 0 10px;
+    border-radius: var(--r-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background-color 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease);
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    border-color: var(--border);
+  }
+
+  .btn-ghost:active {
+    transform: scale(0.98);
+  }
+
+  .win-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  .win-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .win-btn {
+    width: 32px;
+    height: 30px;
+    border: none;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 120ms var(--ease), color 120ms var(--ease);
+  }
+
+  .win-btn:hover {
+    background: var(--bg-raised);
+    color: var(--text-primary);
+  }
+
+  .win-btn.close:hover {
+    background: rgba(229, 72, 77, 0.16);
+    color: var(--err);
+  }
+
+  /* Scrollable content */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    min-height: 0;
+  }
+
+  .content::-webkit-scrollbar {
+    width: 6px;
+  }
+  .content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .content::-webkit-scrollbar-thumb {
+    background: rgba(237, 237, 237, 0.12);
+    border-radius: 3px;
+  }
+  .content::-webkit-scrollbar-thumb:hover {
+    background: rgba(237, 237, 237, 0.22);
+  }
+
+  .page {
+    display: none;
+    max-width: 1080px;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page.active {
+    display: flex;
+    animation: fadeIn 180ms var(--ease);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 20px;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .card-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Buttons */
+  .btn {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: var(--highlight-top);
+    transition: background-color 140ms var(--ease), border-color 140ms var(--ease), color 140ms var(--ease), transform 120ms var(--ease);
+    white-space: nowrap;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--text-primary);
+    color: var(--bg-deep);
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: #dcdce0;
+    border-color: transparent;
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: rgba(229, 72, 77, 0.14);
+    border-color: rgba(229, 72, 77, 0.35);
+    color: #f38b8f;
+  }
+
+  .btn-sm {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  /* Admin banner (shown only if launched without elevation) */
+  .notice-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid rgba(229, 169, 60, 0.28);
+    border-radius: var(--r-lg);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .notice-bar.visible { display: flex; }
+
+  /* Hero status panel */
+  .status-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 20px 24px;
+  }
+
+  .status-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .status-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .status-headline {
+    font-size: 22px;
+    line-height: 28px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .status-desc {
+    font-size: 13px;
+    line-height: 19px;
+    color: var(--text-secondary);
+    max-width: 520px;
+  }
+
+  .status-telemetry {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .status-telemetry span strong {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .status-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .btn-toggle-main {
+    height: 40px;
+    min-width: 176px;
+    padding: 0 20px;
+  }
+
+  /* Asymmetric 2-column mid grid */
+  .grid-main {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  /* Service reachability table */
+  .probe-table {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .probe-row {
+    display: grid;
+    grid-template-columns: 10px 104px 1fr 66px 56px;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 4px;
+    border-top: 1px solid var(--border);
+  }
+
+  .probe-row:first-child {
+    border-top: none;
+  }
+
+  .probe-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .probe-host {
+    font-size: 12px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .probe-state {
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .probe-rtt {
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .probe-rtt.ok { color: var(--text-primary); }
+  .probe-rtt.err { color: var(--err); }
+
+  /* Scope 2x2 selector */
+  .scope-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .scope-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 12px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--bg-page);
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 140ms var(--ease), border-color 140ms var(--ease), color 140ms var(--ease);
+  }
+
+  .scope-btn:hover {
+    background: rgba(237, 237, 237, 0.03);
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+  }
+
+  .scope-btn.active {
+    background: var(--bg-raised);
+    border-color: var(--border-strong);
+    color: var(--text-primary);
+    box-shadow: var(--highlight-top);
+  }
+
+  .scope-btn-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .scope-btn .ico {
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+  }
+
+  .scope-btn.active .ico {
+    color: var(--text-primary);
+  }
+
+  .scope-btn-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: inherit;
+  }
+
+  .scope-btn-desc {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--text-muted);
+  }
+
+  /* Strategy footer card */
+  .strategy-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .strategy-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .strategy-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .strategy-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .strategy-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .strategy-progress {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    font-size: 12px;
+    color: var(--text-secondary);
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .strategy-progress.visible { display: flex; }
+
+  .strategy-subgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding-top: 16px;
+  }
+
+  .sub-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .sub-item + .sub-item {
+    border-left: 1px solid var(--border);
+    padding-left: 16px;
+  }
+
+  .sub-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .sub-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .sub-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Switch */
+  .switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--bg-page);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 140ms var(--ease), border-color 140ms var(--ease);
+  }
+
+  .switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: transform 140ms var(--ease), background-color 140ms var(--ease);
+  }
+
+  .switch.on {
+    background: var(--bg-raised);
+    border-color: rgba(76, 195, 138, 0.45);
+  }
+
+  .switch.on::after {
+    transform: translateX(16px);
+    background: var(--ok);
+  }
+
+  /* Inputs & Selects */
+  .input, .select, .textarea {
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--text-primary);
+    padding: 0 12px;
+    height: 36px;
+    font-size: 13px;
+    transition: border-color 140ms var(--ease);
+  }
+
+  .input:hover, .select:hover, .textarea:hover {
+    border-color: var(--border-strong);
+  }
+
+  .textarea {
+    height: auto;
+    padding: 12px;
+    line-height: 18px;
+    resize: vertical;
+    width: 100%;
+    user-select: text;
+  }
+
+  .select option {
+    background: var(--bg-card);
+    color: var(--text-primary);
+  }
+
+  /* Presets & Hostlists split */
+  .split-2 {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .strategy-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 440px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .strategy-list::-webkit-scrollbar { width: 5px; }
+  .strategy-list::-webkit-scrollbar-thumb { background: rgba(237, 237, 237, 0.12); border-radius: 3px; }
+
+  .strat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: var(--r-md);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    text-align: left;
+    transition: background-color 120ms var(--ease), color 120ms var(--ease);
+  }
+
+  .strat-row:hover {
+    background: rgba(237, 237, 237, 0.04);
+    color: var(--text-primary);
+  }
+
+  .strat-row.active {
+    background: var(--bg-raised);
+    border-color: var(--border);
+    color: var(--text-primary);
+    box-shadow: var(--highlight-top);
+  }
+
+  .tabs-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+
+  .tab-chip {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-page);
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 120ms var(--ease), color 120ms var(--ease);
+  }
+
+  .tab-chip.active {
+    background: var(--bg-raised);
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  /* DNS presets grid */
+  .dns-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .dns-card {
+    padding: 12px;
+    border-radius: var(--r-md);
+    border: 1px solid var(--border);
+    background: var(--bg-page);
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: background-color 140ms var(--ease), border-color 140ms var(--ease);
+  }
+
+  .dns-card:hover {
+    background: var(--bg-raised);
+    border-color: var(--border-strong);
+  }
+
+  .dns-card-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .dns-card-ip {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Diagnostics strip */
+  .diag-list {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .diag-item {
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .diag-label {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .diag-val {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Terminal log viewer */
+  .log-box {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 12px;
+    height: 310px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 18px;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    word-break: break-all;
+    user-select: text;
+  }
+
+  .log-box::-webkit-scrollbar { width: 6px; }
+  .log-box::-webkit-scrollbar-thumb { background: rgba(237, 237, 237, 0.14); border-radius: 3px; }
+
+  /* Settings rows */
+  .settings-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .setting-row:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .setting-row:last-child {
+    padding-bottom: 0;
+  }
+
+  .expert-only { display: none; }
+  body.expert .expert-only { display: block; }
+  body.expert .expert-only-flex { display: flex; }
+
+  /* Toast notification */
+  .toast {
+    position: fixed;
+    right: 24px;
+    bottom: 20px;
+    padding: 10px 14px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    color: var(--text-primary);
+    font-size: 12px;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 160ms var(--ease), transform 160ms var(--ease);
+    z-index: 50;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .args-preview {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 16px;
+    color: var(--text-muted);
+    max-height: 92px;
+    overflow-y: auto;
+    word-break: break-all;
+    user-select: text;
+    margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand-row" onmousedown="dragWindow(event)">
+      <div class="brand-left">
+        <div class="brand-mark">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3.5 4h9l-9 8h9"/>
+          </svg>
+        </div>
+        <span class="brand-name">zapret</span>
+      </div>
+      <span class="brand-ver mono" id="appVersion">1.10.4</span>
+    </div>
+
+    <div class="seg" role="tablist" aria-label="Режим отображения">
+      <button id="viewSimpleBtn" class="active" onclick="setViewMode('simple')" data-i18n="view_simple">Простой</button>
+      <button id="viewExpertBtn" onclick="setViewMode('expert')" data-i18n="view_expert">Эксперт</button>
+    </div>
+
+    <div class="nav-group-label" data-i18n="nav_section">Управление</div>
+    <nav class="nav">
+      <button class="nav-item active" data-page="home" onclick="switchPage('home')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span class="nav-label" data-i18n="nav_home">Главная</span>
+        <span class="dot" id="navStatusDot"></span>
+      </button>
+
+      <button class="nav-item" data-page="presets" onclick="switchPage('presets')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        <span class="nav-label" data-i18n="nav_presets">Пресеты и хосты</span>
+      </button>
+
+      <button class="nav-item" data-page="dns" onclick="switchPage('dns')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a13.5 13.5 0 0 0 0 18M12 3a13.5 13.5 0 0 1 0 18"/></svg>
+        <span class="nav-label" data-i18n="nav_dns">Ускорение и DNS</span>
+      </button>
+
+      <button class="nav-item" data-page="diag" onclick="switchPage('diag')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        <span class="nav-label" data-i18n="nav_diag">Диагностика и логи</span>
+      </button>
+
+      <button class="nav-item" data-page="settings" onclick="switchPage('settings')">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="nav-label" data-i18n="nav_settings">Настройки</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="meta-row">
+        <span class="meta-key" data-i18n="meta_rights">Права</span>
+        <span class="meta-val" id="metaAdmin">Админ</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key" data-i18n="meta_mode">Режим</span>
+        <span class="meta-val" id="metaScope">Полный</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-key" data-i18n="meta_engine">Служба</span>
+        <span class="meta-val" id="metaService"><span class="dot" id="footerDot"></span><span id="metaServiceText">Остановлена</span></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main column -->
+  <div class="main-wrap">
+    <header class="topbar">
+      <div class="topbar-drag" onmousedown="dragWindow(event)" ondblclick="send('window.maximize')">
+        <span class="page-heading" id="pageTitle">Главная</span>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn-ghost" onclick="cleanupStuck()" title="Остановить winws и очистить драйвер WinDivert">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          <span data-i18n="btn_cleanup">Очистить</span>
+        </button>
+
+        <button class="btn-ghost mono" id="langBtn" onclick="toggleLang()">RU</button>
+
+        <div class="win-divider"></div>
+
+        <div class="win-controls">
+          <button class="win-btn" onclick="send('window.minimize')" aria-label="Свернуть">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="3" y1="8.5" x2="13" y2="8.5"/></svg>
+          </button>
+          <button class="win-btn" onclick="send('window.maximize')" aria-label="Развернуть">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="3.5" width="9" height="9" rx="1.2"/></svg>
+          </button>
+          <button class="win-btn close" onclick="send('window.close')" aria-label="Закрыть">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <!-- Non-admin warning bar -->
+      <div class="notice-bar" id="adminNotice" style="margin-bottom: 20px;">
+        <span data-i18n="admin_warn">Приложение запущено без прав администратора. Для работы драйвера WinDivert требуется повышение прав.</span>
+        <button class="btn btn-sm" onclick="send('app.elevate')" data-i18n="btn_elevate">Перезапустить от админа</button>
+      </div>
+
+      <!-- PAGE 1: HOME -->
+      <section class="page active" id="page-home">
+        <!-- Hero status panel -->
+        <div class="card status-panel">
+          <div class="status-main">
+            <div class="status-kicker">
+              <span class="dot" id="heroDot"></span>
+              <span id="heroKicker">Обход остановлен</span>
+            </div>
+            <h1 class="status-headline" id="heroHeadline">Обход не запущен</h1>
+            <p class="status-desc" id="heroDesc">
+              Запустите winws.exe, чтобы обрабатывать соединения к YouTube, Discord и доменам из списка. Банки, Госуслуги и локальные ресурсы идут напрямую.
+            </p>
+            <div class="status-telemetry mono">
+              <span><span data-i18n="uptime_label">Время работы</span>: <strong id="uptimeVal">00:00:00</strong></span>
+              <span id="pidWrap" style="display:none">PID: <strong id="pidVal">—</strong></span>
+              <span>winws: <strong id="modeVal">выкл</strong></span>
+            </div>
+          </div>
+
+          <div class="status-actions">
+            <button class="btn btn-primary btn-toggle-main" id="mainToggleBtn" onclick="toggleBypass()">
+              <span id="mainToggleLabel">Запустить обход</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mid asymmetric row: Service reachability table + Scope selector -->
+        <div class="grid-main">
+          <!-- Reachability -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title" data-i18n="services_title">Доступность сервисов</div>
+                <div class="card-sub" data-i18n="services_sub">Прямая проверка TLS и HTTP-отклика</div>
+              </div>
+              <button class="btn btn-sm" id="probeBtn" onclick="runProbes()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                <span data-i18n="btn_probe">Проверить</span>
+              </button>
+            </div>
+
+            <div class="probe-table" id="probeTable">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Scope -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title" data-i18n="scope_title">Область обхода</div>
+                <div class="card-sub" data-i18n="scope_sub">Какие списки доменов и портов обрабатывать</div>
+              </div>
+            </div>
+
+            <div class="scope-grid">
+              <button class="scope-btn active" data-scope="all" onclick="setScope('all')">
+                <div class="scope-btn-top">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/></svg>
+                </div>
+                <div class="scope-btn-title" data-i18n="scope_all">Всё сразу</div>
+                <div class="scope-btn-desc" data-i18n="scope_all_desc">YouTube, Discord, список и ipset</div>
+              </button>
+
+              <button class="scope-btn" data-scope="youtube" onclick="setScope('youtube')">
+                <div class="scope-btn-top">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+                </div>
+                <div class="scope-btn-title">YouTube</div>
+                <div class="scope-btn-desc" data-i18n="scope_yt_desc">Только домены YouTube и Google</div>
+              </button>
+
+              <button class="scope-btn" data-scope="discord" onclick="setScope('discord')">
+                <div class="scope-btn-top">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <div class="scope-btn-title" data-i18n="scope_dc">Discord и игры</div>
+                <div class="scope-btn-desc" data-i18n="scope_dc_desc">Discord, голос UDP и порты игр</div>
+              </button>
+
+              <button class="scope-btn" data-scope="custom" onclick="setScope('custom')">
+                <div class="scope-btn-top">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>
+                </div>
+                <div class="scope-btn-title" data-i18n="scope_custom">Свой конфиг</div>
+                <div class="scope-btn-desc" data-i18n="scope_custom_desc">Свои аргументы запуска winws</div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Strategy & Watchdog card -->
+        <div class="card">
+          <div class="strategy-top">
+            <div class="strategy-meta">
+              <span class="strategy-label" data-i18n="active_strategy">Активная стратегия</span>
+              <span class="strategy-name" id="activeStrategyName">general (ALT)</span>
+            </div>
+            <div class="strategy-controls">
+              <button class="btn btn-sm" id="autoPickBtn" onclick="toggleAutoPick()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span id="autoPickBtnLabel" data-i18n="btn_autopick">Подобрать стратегию</span>
+              </button>
+              <button class="btn btn-sm" onclick="switchPage('presets')" data-i18n="btn_change">Сменить</button>
+            </div>
+          </div>
+
+          <div class="strategy-progress" id="autoPickProgress">
+            <span class="mono" id="autoPickProgressText">Проверка...</span>
+            <button class="btn-ghost" onclick="send('bypass.cancelAutopick')" data-i18n="btn_cancel">Отменить</button>
+          </div>
+
+          <div class="strategy-subgrid">
+            <div class="sub-item">
+              <div class="sub-text">
+                <span class="sub-title" data-i18n="watchdog_title">Сторож соединения</span>
+                <span class="sub-desc" id="watchdogSubText">Выключен · проверка каждые 15 мин</span>
+              </div>
+              <button class="switch" id="watchdogSwitch" onclick="toggleWatchdog()" aria-label="Сторож"></button>
+            </div>
+
+            <div class="sub-item">
+              <div class="sub-text">
+                <span class="sub-title" data-i18n="gamefilter_title">Игровой фильтр портов</span>
+                <span class="sub-desc" id="gameFilterSubText">Отключён (TCP/UDP 1024–65535)</span>
+              </div>
+              <button class="switch" id="gameFilterSwitch" onclick="toggleGameFilterQuick()" aria-label="Игровой фильтр"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 2: PRESETS & HOSTS -->
+      <section class="page" id="page-presets">
+        <div class="split-2">
+          <!-- Strategies list -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title" data-i18n="presets_list_title">Стратегии</div>
+                <div class="card-sub mono" id="stratCount">0 файлов</div>
+              </div>
+            </div>
+            <input class="input" id="stratSearch" style="width:100%; margin-bottom: 12px;" placeholder="Поиск стратегии" oninput="renderStrategies()">
+            <div class="strategy-list" id="strategyList"></div>
+          </div>
+
+          <!-- Hostlists & custom args -->
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title" data-i18n="hosts_editor_title">Списки доменов и IP</div>
+                  <div class="card-sub" data-i18n="hosts_editor_sub">Файлы из папки lists/ — по одной записи на строку</div>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="saveCurrentHostFile()" data-i18n="btn_save">Сохранить</button>
+              </div>
+
+              <div class="tabs-inline" id="hostFileTabs"></div>
+              <textarea class="textarea mono" id="hostFileEditor" rows="11" spellcheck="false"></textarea>
+            </div>
+
+            <div class="card expert-only" id="customArgsCard">
+              <div class="card-header">
+                <div>
+                  <div class="card-title" data-i18n="custom_args_title">Аргументы winws.exe (Свой конфиг)</div>
+                  <div class="card-sub">Поддерживаются переменные %BIN%, %LISTS%, %GameFilterTCP%, %GameFilterUDP%</div>
+                </div>
+                <button class="btn btn-sm" onclick="saveCustomArgs()" data-i18n="btn_save">Сохранить</button>
+              </div>
+              <textarea class="textarea mono" id="customArgsEditor" rows="4" spellcheck="false" placeholder="--wf-tcp=80,443 --wf-udp=443 ..."></textarea>
+              <div class="args-preview" id="selectedArgsPreview"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 3: DNS & NETWORK -->
+      <section class="page" id="page-dns">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" data-i18n="dns_title">DNS сетевого адаптера</div>
+              <div class="card-sub" data-i18n="dns_sub">Быстрая смена DNS для стабильного резолва доменов</div>
+            </div>
+            <button class="btn btn-sm" onclick="flushDns()" data-i18n="btn_flush_dns">Сбросить кэш DNS</button>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center;">
+            <select class="select" id="adapterSelect" onchange="updateAdapterDnsLabel()"></select>
+            <span class="mono" style="font-size:12px; color:var(--text-secondary)" id="currentDnsLabel">DNS: —</span>
+          </div>
+
+          <div class="dns-grid">
+            <button class="dns-card" onclick="applyDns('1.1.1.1', '1.0.0.1')">
+              <span class="dns-card-name">Cloudflare</span>
+              <span class="dns-card-ip mono">1.1.1.1 · 1.0.0.1</span>
+            </button>
+            <button class="dns-card" onclick="applyDns('8.8.8.8', '8.8.4.4')">
+              <span class="dns-card-name">Google DNS</span>
+              <span class="dns-card-ip mono">8.8.8.8 · 8.8.4.4</span>
+            </button>
+            <button class="dns-card" onclick="applyDns('9.9.9.9', '149.112.112.112')">
+              <span class="dns-card-name">Quad9</span>
+              <span class="dns-card-ip mono">9.9.9.9 · 149.112.112.112</span>
+            </button>
+            <button class="dns-card" onclick="applyDns('94.140.14.14', '94.140.15.15')">
+              <span class="dns-card-name">AdGuard DNS</span>
+              <span class="dns-card-ip mono">94.140.14.14 · 94.140.15.15</span>
+            </button>
+            <button class="dns-card" onclick="applyDns('77.88.8.8', '77.88.8.1')">
+              <span class="dns-card-name">Yandex DNS</span>
+              <span class="dns-card-ip mono">77.88.8.8 · 77.88.8.1</span>
+            </button>
+            <button class="dns-card" onclick="applyDns('dhcp', '')">
+              <span class="dns-card-name" data-i18n="dns_dhcp">Системный (DHCP)</span>
+              <span class="dns-card-ip mono">Авто от провайдера</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" data-i18n="net_tweaks_title">Сетевые параметры и игровой фильтр</div>
+              <div class="card-sub" data-i18n="net_tweaks_sub">Оптимизация TCP и порты для голосовых каналов и игр</div>
+            </div>
+          </div>
+
+          <div class="settings-list">
+            <div class="setting-row">
+              <div class="sub-text">
+                <span class="sub-title">Игровой фильтр (GameFilter)</span>
+                <span class="sub-desc">Перехват портов для игр и нестандартных UDP-сессий</span>
+              </div>
+              <select class="select" id="gameFilterSelect" style="width:180px" onchange="updateGameFilterMode()">
+                <option value="disabled">Отключён</option>
+                <option value="all">TCP и UDP</option>
+                <option value="tcp">Только TCP</option>
+                <option value="udp">Только UDP</option>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <div class="sub-text">
+                <span class="sub-title">Диапазон портов (TCP / UDP)</span>
+                <span class="sub-desc">По умолчанию 1024-65535</span>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <input class="input mono" id="gfTcpInput" style="width:130px" value="1024-65535" onchange="updateGameFilterMode()">
+                <input class="input mono" id="gfUdpInput" style="width:130px" value="1024-65535" onchange="updateGameFilterMode()">
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="sub-text">
+                <span class="sub-title">TCP Timestamps</span>
+                <span class="sub-desc">Необходим для стратегий с параметром fooling=ts</span>
+              </div>
+              <button class="btn btn-sm" onclick="enableTcpTimestamps()">Включить</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE 4: DIAGNOSTICS & LOGS -->
+      <section class="page" id="page-diag">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" data-i18n="diag_title">Состояние системы</div>
+              <div class="card-sub" data-i18n="diag_sub">Проверка зависимостей winws.exe и драйвера WinDivert</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-sm" onclick="refreshDiag()" data-i18n="btn_refresh">Обновить</button>
+              <button class="btn btn-sm btn-danger" onclick="cleanupStuck()" data-i18n="btn_cleanup_full">Очистить зависшие</button>
+            </div>
+          </div>
+
+          <div class="diag-list" id="diagList"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" data-i18n="logs_title">Журнал работы</div>
+              <div class="card-sub">Вывод winws.exe и события GUI в реальном времени</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-sm" onclick="copyLogs()" data-i18n="btn_copy">Копировать</button>
+              <button class="btn btn-sm" onclick="clearLogs()" data-i18n="btn_clear">Очистить</button>
+            </div>
+          </div>
+          <div class="log-box" id="logBox"></div>
+        </div>
+      </section>
+
+      <!-- PAGE 5: SETTINGS -->
+      <section class="page" id="page-settings">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title" data-i18n="settings_title">Параметры запуска</div>
+              <div class="card-sub">Управление службой Windows, сторожем и треем</div>
+            </div>
+            <button class="btn btn-sm" onclick="send('app.openFolder')">Открыть папку</button>
+          </div>
+
+          <div class="settings-list">
+            <div class="setting-row">
+              <div class="sub-text">
+                <span class="sub-title">Автозапуск как служба Windows</span>
+                <span class="sub-desc">Устанавливает системную службу zapret с автоматическим стартом</span>
+              </div>
+              <button class="switch" id="autostartSwitch" onclick="toggleAutostart()"></button>
+            </div>
+
+            <div class="setting-row">
+              <div class="sub-text">
+                <span class="sub-title">Сворачивать в системный трей</span>
+                <span class="sub-desc">При нажатии крестика приложение продолжает работу в фоне</span>
+              </div>
+              <button class="switch" id="traySwitch" onclick="toggleTraySetting()"></button>
+            </div>
+
+            <div class="setting-row">
+              <div class="sub-text">
+                <span class="sub-title">Интервал проверки сторожа</span>
+                <span class="sub-desc">Перезапускает обход при потере доступности сервисов</span>
+              </div>
+              <select class="select" id="watchdogIntervalSelect" style="width:150px" onchange="updateWatchdogInterval()">
+                <option value="5">Каждые 5 мин</option>
+                <option value="15">Каждые 15 мин</option>
+                <option value="30">Каждые 30 мин</option>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <div class="sub-text">
+                <span class="sub-title">Полный выход</span>
+                <span class="sub-desc">Закрыть интерфейс и остановить процесс winws.exe (если запущен не как служба)</span>
+              </div>
+              <button class="btn btn-sm btn-danger" onclick="send('window.exit')">Выйти из zapret</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const hasNative = !!(window.chrome && window.chrome.webview);
+  let reqSeq = 1;
+  const pending = new Map();
+
+  const state = {
+    status: {
+      Running: false,
+      Mode: 'stopped',
+      Pid: 0,
+      UptimeSeconds: 0,
+      ActiveStrategy: 'general (ALT)',
+      Scope: 'all',
+      ServiceState: 'Not installed',
+      IsAdmin: true,
+      AutoPickRunning: false,
+      AutoPickStatus: ''
+    },
+    config: {
+      Strategy: 'general (ALT)',
+      Scope: 'all',
+      ViewMode: 'simple',
+      RunMode: 'process',
+      Language: 'ru',
+      GameFilter: 'disabled',
+      GameFilterTcpRange: '1024-65535',
+      GameFilterUdpRange: '1024-65535',
+      WatchdogEnabled: false,
+      WatchdogIntervalMin: 15,
+      MinimizeToTray: true,
+      AutoStartBypass: false,
+      CustomArgs: ''
+    },
+    strategies: [],
+    hostFiles: [],
+    currentHostFile: 'list-general-user.txt',
+    probes: [
+      { Id: 'youtube', Name: 'YouTube', Endpoint: 'youtube.com', Ok: null, LatencyMs: -1, Detail: '—' },
+      { Id: 'discord', Name: 'Discord', Endpoint: 'discord.com', Ok: null, LatencyMs: -1, Detail: '—' },
+      { Id: 'voice', Name: 'Голосовой чат', Endpoint: 'gateway.discord.gg', Ok: null, LatencyMs: -1, Detail: '—' },
+      { Id: 'telegram', Name: 'Telegram', Endpoint: 'api.telegram.org', Ok: null, LatencyMs: -1, Detail: '—' }
+    ],
+    diag: [],
+    adapters: [],
+    logs: [],
+    probing: false
+  };
+
+  const I18N = {
+    ru: {
+      view_simple: 'Простой',
+      view_expert: 'Эксперт',
+      nav_section: 'Управление',
+      nav_home: 'Главная',
+      nav_presets: 'Пресеты и хосты',
+      nav_dns: 'Ускорение и DNS',
+      nav_diag: 'Диагностика и логи',
+      nav_settings: 'Настройки',
+      meta_rights: 'Права',
+      meta_mode: 'Режим',
+      meta_engine: 'Служба',
+      btn_cleanup: 'Очистить',
+      btn_probe: 'Проверить',
+      btn_autopick: 'Подобрать стратегию',
+      btn_change: 'Сменить',
+      btn_cancel: 'Отменить',
+      btn_save: 'Сохранить',
+      btn_refresh: 'Обновить',
+      btn_cleanup_full: 'Очистить зависшие',
+      btn_copy: 'Копировать',
+      btn_clear: 'Очистить',
+      btn_flush_dns: 'Сбросить кэш DNS',
+      btn_elevate: 'Перезапустить от админа',
+      services_title: 'Доступность сервисов',
+      services_sub: 'Прямая проверка TLS и HTTP-отклика',
+      scope_title: 'Область обхода',
+      scope_sub: 'Какие списки доменов и портов обрабатывать',
+      scope_all: 'Всё сразу',
+      scope_all_desc: 'YouTube, Discord, список и ipset',
+      scope_yt_desc: 'Только домены YouTube и Google',
+      scope_dc: 'Discord и игры',
+      scope_dc_desc: 'Discord, голос UDP и порты игр',
+      scope_custom: 'Свой конфиг',
+      scope_custom_desc: 'Свои аргументы запуска winws',
+      active_strategy: 'Активная стратегия',
+      watchdog_title: 'Сторож соединения',
+      gamefilter_title: 'Игровой фильтр портов',
+      uptime_label: 'Время работы',
+      presets_list_title: 'Стратегии',
+      hosts_editor_title: 'Списки доменов и IP',
+      hosts_editor_sub: 'Файлы из папки lists/ — по одной записи на строку',
+      custom_args_title: 'Аргументы winws.exe (Свой конфиг)',
+      dns_title: 'DNS сетевого адаптера',
+      dns_sub: 'Быстрая смена DNS для стабильного резолва доменов',
+      dns_dhcp: 'Системный (DHCP)',
+      net_tweaks_title: 'Сетевые параметры и игровой фильтр',
+      net_tweaks_sub: 'Оптимизация TCP и порты для голосовых каналов и игр',
+      diag_title: 'Состояние системы',
+      diag_sub: 'Проверка зависимостей winws.exe и драйвера WinDivert',
+      logs_title: 'Журнал работы',
+      settings_title: 'Параметры запуска',
+      admin_warn: 'Приложение запущено без прав администратора. Для работы драйвера WinDivert требуется повышение прав.'
+    },
+    en: {
+      view_simple: 'Simple',
+      view_expert: 'Expert',
+      nav_section: 'Control',
+      nav_home: 'Overview',
+      nav_presets: 'Presets & Hosts',
+      nav_dns: 'Network & DNS',
+      nav_diag: 'Diagnostics & Logs',
+      nav_settings: 'Settings',
+      meta_rights: 'Access',
+      meta_mode: 'Scope',
+      meta_engine: 'Engine',
+      btn_cleanup: 'Clean up',
+      btn_probe: 'Check',
+      btn_autopick: 'Auto-select',
+      btn_change: 'Change',
+      btn_cancel: 'Cancel',
+      btn_save: 'Save',
+      btn_refresh: 'Refresh',
+      btn_cleanup_full: 'Clean stuck',
+      btn_copy: 'Copy',
+      btn_clear: 'Clear',
+      btn_flush_dns: 'Flush DNS cache',
+      btn_elevate: 'Restart as Admin',
+      services_title: 'Service reachability',
+      services_sub: 'Direct TLS and HTTP latency check',
+      scope_title: 'Bypass scope',
+      scope_sub: 'Hostlists and ports processed by winws',
+      scope_all: 'All services',
+      scope_all_desc: 'YouTube, Discord, general list & ipset',
+      scope_yt_desc: 'YouTube and Google domains only',
+      scope_dc: 'Discord & games',
+      scope_dc_desc: 'Discord, UDP voice & game ports',
+      scope_custom: 'Custom args',
+      scope_custom_desc: 'Manual winws command-line flags',
+      active_strategy: 'Active strategy',
+      watchdog_title: 'Connection watchdog',
+      gamefilter_title: 'Game port filter',
+      uptime_label: 'Uptime',
+      presets_list_title: 'Strategies',
+      hosts_editor_title: 'Hostlists & IP sets',
+      hosts_editor_sub: 'Files inside lists/ — one entry per line',
+      custom_args_title: 'Custom winws.exe arguments',
+      dns_title: 'Adapter DNS',
+      dns_sub: 'Switch DNS resolver for active network interface',
+      dns_dhcp: 'System (DHCP)',
+      net_tweaks_title: 'Network & game filter',
+      net_tweaks_sub: 'TCP timestamps and extended game port ranges',
+      diag_title: 'System checks',
+      diag_sub: 'WinDivert driver, BFE service and binary verification',
+      logs_title: 'Runtime log',
+      settings_title: 'Startup & behavior',
+      admin_warn: 'Running without administrator privileges. Elevation is required for WinDivert.'
+    }
+  };
+
+  function send(cmd, payload = {}) {
+    if (!hasNative) return;
+    window.chrome.webview.postMessage(JSON.stringify({ cmd, ...payload }));
+  }
+
+  function request(cmd, payload = {}) {
+    return new Promise(resolve => {
+      if (!hasNative) { resolve({}); return; }
+      const id = String(reqSeq++);
+      pending.set(id, resolve);
+      window.chrome.webview.postMessage(JSON.stringify({ cmd, id, ...payload }));
+      setTimeout(() => {
+        if (pending.has(id)) { pending.delete(id); resolve({}); }
+      }, 60000);
+    });
+  }
+
+  if (hasNative) {
+    window.chrome.webview.addEventListener('message', ev => {
+      const msg = ev.data;
+      if (!msg || !msg.type) return;
+
+      if (msg.type === 'reply') {
+        const cb = pending.get(msg.payload.id);
+        if (cb) { pending.delete(msg.payload.id); cb(msg.payload.data); }
+      } else if (msg.type === 'init') {
+        const d = msg.payload;
+        state.status = d.status || state.status;
+        state.config = d.config || state.config;
+        state.strategies = d.strategies || [];
+        state.hostFiles = d.hostFiles || [];
+        state.logs = d.logs || [];
+        if (d.version) document.getElementById('appVersion').textContent = d.version;
+        applyAll();
+        if (state.hostFiles.length > 0) {
+          const def = state.hostFiles.includes('list-general-user.txt') ? 'list-general-user.txt' : state.hostFiles[0];
+          openHostFile(def);
+        }
+        runProbes();
+      } else if (msg.type === 'status') {
+        state.status = msg.payload;
+        renderStatus();
+      } else if (msg.type === 'log') {
+        state.logs.push(msg.payload.line);
+        if (state.logs.length > 500) state.logs.shift();
+        appendLogLine(msg.payload.line);
+      } else if (msg.type === 'diag') {
+        state.diag = msg.payload.diag || [];
+        renderDiag();
+      } else if (msg.type === 'adapters') {
+        state.adapters = msg.payload.adapters || [];
+        renderAdapters();
+      } else if (msg.type === 'autopick') {
+        document.getElementById('autoPickProgress').classList.add('visible');
+        document.getElementById('autoPickProgressText').textContent = msg.payload.status;
+      }
+    });
+  }
+
+  function dragWindow(e) {
+    if (e.button === 0 && hasNative) send('window.drag');
+  }
+
+  function switchPage(pageId) {
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
+    document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + pageId));
+    const navBtn = document.querySelector(`.nav-item[data-page="${pageId}"] .nav-label`);
+    if (navBtn) document.getElementById('pageTitle').textContent = navBtn.textContent;
+    if (pageId === 'diag') refreshDiag();
+    if (pageId === 'dns') request('dns.list').then(r => { if (r.adapters) { state.adapters = r.adapters; renderAdapters(); } });
+  }
+
+  function applyLang() {
+    const lang = state.config.Language === 'en' ? 'en' : 'ru';
+    const dict = I18N[lang];
+    document.getElementById('langBtn').textContent = lang.toUpperCase();
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const k = el.dataset.i18n;
+      if (dict[k]) el.textContent = dict[k];
+    });
+    const activeNav = document.querySelector('.nav-item.active .nav-label');
+    if (activeNav) document.getElementById('pageTitle').textContent = activeNav.textContent;
+  }
+
+  function toggleLang() {
+    state.config.Language = state.config.Language === 'ru' ? 'en' : 'ru';
+    request('config.update', { language: state.config.Language });
+    applyLang();
+    renderStatus();
+  }
+
+  function setViewMode(mode) {
+    state.config.ViewMode = mode;
+    document.body.classList.toggle('expert', mode === 'expert');
+    document.getElementById('viewSimpleBtn').classList.toggle('active', mode === 'simple');
+    document.getElementById('viewExpertBtn').classList.toggle('active', mode === 'expert');
+    request('config.update', { viewMode: mode });
+  }
+
+  function formatUptime(sec) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  }
+
+  function renderStatus() {
+    const st = state.status;
+    const ru = state.config.Language !== 'en';
+    const running = !!st.Running;
+
+    document.getElementById('adminNotice').classList.toggle('visible', !st.IsAdmin);
+
+    const navDot = document.getElementById('navStatusDot');
+    const heroDot = document.getElementById('heroDot');
+    const footerDot = document.getElementById('footerDot');
+    const dotCls = st.AutoPickRunning ? 'dot warn' : (running ? 'dot ok' : 'dot');
+    navDot.className = dotCls;
+    heroDot.className = dotCls;
+    footerDot.className = dotCls;
+
+    document.getElementById('heroKicker').textContent = st.AutoPickRunning
+      ? (ru ? 'Подбор стратегии' : 'Probing strategies')
+      : (running ? (ru ? 'Обход активен' : 'Bypass active') : (ru ? 'Обход остановлен' : 'Bypass stopped'));
+
+    document.getElementById('heroHeadline').textContent = running
+      ? (ru ? 'Обход работает' : 'Bypass is running')
+      : (ru ? 'Обход не запущен' : 'Bypass is stopped');
+
+    document.getElementById('heroDesc').textContent = running
+      ? (ru
+          ? 'YouTube, Discord и домены из списка обрабатываются через winws. Банки, Госуслуги и локальные сайты идут напрямую.'
+          : 'YouTube, Discord and listed domains are processed by winws. Direct sites remain untouched.')
+      : (ru
+          ? 'Запустите winws.exe, чтобы обрабатывать соединения к YouTube, Discord и доменам из списка. Локальные сайты идут напрямую.'
+          : 'Start winws.exe to handle DPI desync for YouTube, Discord and configured hostlists.');
+
+    document.getElementById('uptimeVal').textContent = formatUptime(st.UptimeSeconds || 0);
+    document.getElementById('modeVal').textContent = running
+      ? (st.Mode === 'service' ? (ru ? 'служба' : 'service') : (ru ? 'процесс' : 'process'))
+      : (ru ? 'выкл' : 'off');
+
+    const pidWrap = document.getElementById('pidWrap');
+    if (running && st.Pid > 0) {
+      pidWrap.style.display = 'inline';
+      document.getElementById('pidVal').textContent = String(st.Pid);
+    } else {
+      pidWrap.style.display = 'none';
+    }
+
+    const toggleBtn = document.getElementById('mainToggleBtn');
+    const toggleLbl = document.getElementById('mainToggleLabel');
+    if (running) {
+      toggleBtn.className = 'btn btn-danger btn-toggle-main';
+      toggleLbl.textContent = ru ? 'Остановить обход' : 'Stop bypass';
+    } else {
+      toggleBtn.className = 'btn btn-primary btn-toggle-main';
+      toggleLbl.textContent = ru ? 'Запустить обход' : 'Start bypass';
+    }
+
+    // Sidebar footer
+    const metaAdmin = document.getElementById('metaAdmin');
+    metaAdmin.textContent = st.IsAdmin ? (ru ? 'Админ' : 'Admin') : (ru ? 'Ограничено' : 'User');
+    metaAdmin.className = 'meta-val ' + (st.IsAdmin ? 'ok' : 'err');
+
+    const scopeNames = ru
+      ? { all: 'Полный', youtube: 'YouTube', discord: 'Discord', custom: 'Свой' }
+      : { all: 'Full', youtube: 'YouTube', discord: 'Discord', custom: 'Custom' };
+    document.getElementById('metaScope').textContent = scopeNames[state.config.Scope] || 'Полный';
+
+    const metaSvc = document.getElementById('metaServiceText');
+    metaSvc.textContent = running
+      ? (st.Mode === 'service' ? (ru ? 'Служба' : 'Service') : (ru ? 'Активна' : 'Active'))
+      : (ru ? 'Остановлена' : 'Stopped');
+
+    // Strategy panel
+    document.getElementById('activeStrategyName').textContent =
+      state.config.Scope === 'custom' ? (ru ? 'Свой конфиг (custom)' : 'Custom args') : (st.ActiveStrategy || state.config.Strategy);
+
+    const apProg = document.getElementById('autoPickProgress');
+    apProg.classList.toggle('visible', !!st.AutoPickRunning);
+    if (st.AutoPickRunning && st.AutoPickStatus) {
+      document.getElementById('autoPickProgressText').textContent = st.AutoPickStatus;
+    }
+    document.getElementById('autoPickBtnLabel').textContent = st.AutoPickRunning
+      ? (ru ? 'Остановить подбор' : 'Cancel')
+      : (ru ? 'Подобрать стратегию' : 'Auto-select');
+
+    // Scope buttons
+    document.querySelectorAll('.scope-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.scope === state.config.Scope);
+    });
+
+    // Switches
+    document.getElementById('watchdogSwitch').classList.toggle('on', !!state.config.WatchdogEnabled);
+    document.getElementById('watchdogSubText').textContent = state.config.WatchdogEnabled
+      ? (ru ? `Включён · проверка каждые ${state.config.WatchdogIntervalMin} мин` : `Enabled · every ${state.config.WatchdogIntervalMin} min`)
+      : (ru ? `Выключен · интервал ${state.config.WatchdogIntervalMin} мин` : `Disabled · interval ${state.config.WatchdogIntervalMin} min`);
+
+    const gfOn = state.config.GameFilter && state.config.GameFilter !== 'disabled';
+    document.getElementById('gameFilterSwitch').classList.toggle('on', gfOn);
+    document.getElementById('gameFilterSubText').textContent = gfOn
+      ? (ru ? `Активен (${state.config.GameFilter.toUpperCase()}) · ${state.config.GameFilterTcpRange}` : `Active (${state.config.GameFilter.toUpperCase()})`)
+      : (ru ? 'Отключён (порты 1024–65535)' : 'Disabled (ports 1024–65535)');
+
+    document.getElementById('autostartSwitch').classList.toggle('on', state.config.RunMode === 'service' && !!state.config.AutoStartBypass);
+    document.getElementById('traySwitch').classList.toggle('on', !!state.config.MinimizeToTray);
+  }
+
+  function renderProbes() {
+    const ru = state.config.Language !== 'en';
+    const root = document.getElementById('probeTable');
+    root.innerHTML = state.probes.map(p => {
+      let dotCls = 'dot';
+      let stateText = ru ? 'Ожидание' : 'Pending';
+      let rttText = '—';
+      let rttCls = 'probe-rtt mono';
+
+      if (state.probing) {
+        dotCls = 'dot warn';
+        stateText = ru ? 'Проверка' : 'Probing';
+      } else if (p.Ok === true) {
+        dotCls = 'dot ok';
+        stateText = ru ? 'Доступен' : 'Reachable';
+        rttText = p.LatencyMs + ' ms';
+        rttCls = 'probe-rtt mono ok';
+      } else if (p.Ok === false) {
+        dotCls = 'dot err';
+        stateText = ru ? 'Нет ответа' : 'Unreachable';
+        rttText = p.Detail || 'timeout';
+        rttCls = 'probe-rtt mono err';
+      }
+
+      return `
+        <div class="probe-row">
+          <span class="${dotCls}"></span>
+          <span class="probe-name">${escapeHtml(p.Name)}</span>
+          <span class="probe-host mono">${escapeHtml(p.Endpoint)}</span>
+          <span class="probe-state">${stateText}</span>
+          <span class="${rttCls}">${escapeHtml(rttText)}</span>
+        </div>`;
+    }).join('');
+  }
+
+  function renderStrategies() {
+    const q = (document.getElementById('stratSearch').value || '').toLowerCase().trim();
+    const list = state.strategies.filter(s => !q || s.Name.toLowerCase().includes(q));
+    document.getElementById('stratCount').textContent = `${state.strategies.length} .bat`;
+    const root = document.getElementById('strategyList');
+    root.innerHTML = list.map(s => {
+      const active = s.Name === state.config.Strategy;
+      return `
+        <button class="strat-row ${active ? 'active' : ''}" onclick="selectStrategy('${escapeAttr(s.Name)}')">
+          <span>${escapeHtml(s.Name)}</span>
+          ${active ? '<span class="dot ok"></span>' : ''}
+        </button>`;
+    }).join('');
+
+    const current = state.strategies.find(s => s.Name === state.config.Strategy);
+    const prev = document.getElementById('selectedArgsPreview');
+    if (prev) prev.textContent = current ? ('winws.exe ' + current.PreviewArgs) : '';
+  }
+
+  function renderHostTabs() {
+    const root = document.getElementById('hostFileTabs');
+    root.innerHTML = state.hostFiles.map(f => `
+      <button class="tab-chip mono ${f === state.currentHostFile ? 'active' : ''}" onclick="openHostFile('${escapeAttr(f)}')">${escapeHtml(f)}</button>
+    `).join('');
+  }
+
+  function renderDiag() {
+    const root = document.getElementById('diagList');
+    root.innerHTML = state.diag.map(d => `
+      <div class="diag-item">
+        <span class="diag-label">${escapeHtml(d.Label)}</span>
+        <span class="diag-val mono"><span class="dot ${d.Ok ? 'ok' : 'err'}"></span>${escapeHtml(d.Value)}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderAdapters() {
+    const sel = document.getElementById('adapterSelect');
+    if (!state.adapters.length) {
+      sel.innerHTML = '<option value="">Адаптеры не найдены</option>';
+      document.getElementById('currentDnsLabel').textContent = 'DNS: —';
+      return;
+    }
+    const prev = sel.value;
+    sel.innerHTML = state.adapters.map(a =>
+      `<option value="${escapeAttr(a.Name)}">${escapeHtml(a.Name)} — ${escapeHtml(a.Description)}</option>`
+    ).join('');
+    if (prev && state.adapters.some(a => a.Name === prev)) sel.value = prev;
+    updateAdapterDnsLabel();
+  }
+
+  function updateAdapterDnsLabel() {
+    const name = document.getElementById('adapterSelect').value;
+    const found = state.adapters.find(a => a.Name === name);
+    document.getElementById('currentDnsLabel').textContent = found ? ('DNS: ' + found.Dns) : 'DNS: —';
+  }
+
+  function renderLogs() {
+    const box = document.getElementById('logBox');
+    box.textContent = state.logs.join('\n');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function appendLogLine(line) {
+    const box = document.getElementById('logBox');
+    box.textContent += (box.textContent ? '\n' : '') + line;
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function applyAll() {
+    setViewMode(state.config.ViewMode || 'simple');
+    applyLang();
+    renderStatus();
+    renderProbes();
+    renderStrategies();
+    renderHostTabs();
+    renderLogs();
+    document.getElementById('customArgsEditor').value = state.config.CustomArgs || '';
+    document.getElementById('gameFilterSelect').value = state.config.GameFilter || 'disabled';
+    document.getElementById('gfTcpInput').value = state.config.GameFilterTcpRange || '1024-65535';
+    document.getElementById('gfUdpInput').value = state.config.GameFilterUdpRange || '1024-65535';
+    document.getElementById('watchdogIntervalSelect').value = String(state.config.WatchdogIntervalMin || 15);
+  }
+
+  // Actions
+  async function toggleBypass() {
+    const btn = document.getElementById('mainToggleBtn');
+    btn.disabled = true;
+    try {
+      if (state.status.Running) {
+        await request('bypass.stop');
+        toast('Обход остановлен');
+      } else {
+        const res = await request('bypass.start', { strategy: state.config.Strategy });
+        if (res.ok) {
+          toast('Обход запущен: ' + state.config.Strategy);
+          setTimeout(runProbes, 700);
+        } else {
+          toast('Не удалось запустить — смотрите вкладку Диагностика и логи');
+        }
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function runProbes() {
+    if (state.probing) return;
+    state.probing = true;
+    document.getElementById('probeBtn').disabled = true;
+    renderProbes();
+    const res = await request('probe.run');
+    state.probing = false;
+    document.getElementById('probeBtn').disabled = false;
+    if (res && res.probes) {
+      state.probes = res.probes;
+    }
+    renderProbes();
+  }
+
+  async function setScope(scope) {
+    state.config.Scope = scope;
+    renderStatus();
+    await request('config.update', { scope, restartIfRunning: true });
+    toast('Область обхода обновлена');
+    if (scope === 'custom') {
+      setViewMode('expert');
+      switchPage('presets');
+    }
+  }
+
+  async function selectStrategy(name) {
+    state.config.Strategy = name;
+    renderStrategies();
+    renderStatus();
+    await request('config.update', { strategy: name, restartIfRunning: true });
+    toast('Выбрана стратегия: ' + name);
+  }
+
+  async function toggleAutoPick() {
+    if (state.status.AutoPickRunning) {
+      await request('bypass.cancelAutopick');
+      return;
+    }
+    document.getElementById('autoPickProgress').classList.add('visible');
+    const res = await request('bypass.autopick');
+    if (res && res.ok && res.strategy) {
+      state.config.Strategy = res.strategy;
+      renderStrategies();
+      toast('Подобрана стратегия: ' + res.strategy);
+      runProbes();
+    } else {
+      toast('Автоподбор завершён');
+    }
+  }
+
+  async function toggleWatchdog() {
+    state.config.WatchdogEnabled = !state.config.WatchdogEnabled;
+    renderStatus();
+    await request('config.update', { watchdogEnabled: state.config.WatchdogEnabled });
+    toast(state.config.WatchdogEnabled ? 'Сторож включён' : 'Сторож выключен');
+  }
+
+  async function toggleGameFilterQuick() {
+    const next = (state.config.GameFilter && state.config.GameFilter !== 'disabled') ? 'disabled' : 'all';
+    state.config.GameFilter = next;
+    document.getElementById('gameFilterSelect').value = next;
+    renderStatus();
+    await request('config.update', { gameFilter: next, restartIfRunning: true });
+    toast(next === 'all' ? 'Игровой фильтр включён (TCP+UDP)' : 'Игровой фильтр отключён');
+  }
+
+  async function updateGameFilterMode() {
+    const mode = document.getElementById('gameFilterSelect').value;
+    const tcp = document.getElementById('gfTcpInput').value.trim() || '1024-65535';
+    const udp = document.getElementById('gfUdpInput').value.trim() || '1024-65535';
+    state.config.GameFilter = mode;
+    state.config.GameFilterTcpRange = tcp;
+    state.config.GameFilterUdpRange = udp;
+    renderStatus();
+    await request('config.update', { gameFilter: mode, gameFilterTcpRange: tcp, gameFilterUdpRange: udp, restartIfRunning: true });
+    toast('Настройки игрового фильтра сохранены');
+  }
+
+  async function openHostFile(fileName) {
+    state.currentHostFile = fileName;
+    renderHostTabs();
+    const res = await request('lists.read', { file: fileName });
+    if (res && typeof res.content === 'string') {
+      document.getElementById('hostFileEditor').value = res.content;
+    }
+  }
+
+  async function saveCurrentHostFile() {
+    const content = document.getElementById('hostFileEditor').value;
+    await request('lists.save', { file: state.currentHostFile, content });
+    toast('Сохранено: ' + state.currentHostFile);
+  }
+
+  async function saveCustomArgs() {
+    const val = document.getElementById('customArgsEditor').value;
+    state.config.CustomArgs = val;
+    await request('config.update', { customArgs: val, restartIfRunning: state.config.Scope === 'custom' });
+    toast('Аргументы сохранены');
+  }
+
+  async function applyDns(primary, secondary) {
+    const adapter = document.getElementById('adapterSelect').value;
+    if (!adapter) { toast('Сетевой адаптер не выбран'); return; }
+    const res = await request('dns.apply', { adapter, primary, secondary });
+    if (res && res.adapters) { state.adapters = res.adapters; renderAdapters(); }
+    toast(res && res.message ? res.message : 'DNS обновлён');
+  }
+
+  async function flushDns() {
+    const res = await request('dns.flush');
+    toast(res && res.message ? res.message : 'Кэш DNS очищен');
+  }
+
+  async function enableTcpTimestamps() {
+    await request('tcp.timestamps');
+    refreshDiag();
+    toast('TCP Timestamps включены');
+  }
+
+  async function cleanupStuck() {
+    const res = await request('bypass.cleanup');
+    refreshDiag();
+    toast(res && res.message ? res.message : 'Очистка завершена');
+  }
+
+  async function refreshDiag() {
+    const res = await request('diag.run');
+    if (res && res.diag) { state.diag = res.diag; renderDiag(); }
+  }
+
+  async function toggleAutostart() {
+    const next = !(state.config.RunMode === 'service' && state.config.AutoStartBypass);
+    const res = await request('autostart.set', { enabled: next });
+    if (res && res.config) state.config = res.config;
+    renderStatus();
+    toast(next ? 'Служба zapret установлена в автозапуск' : 'Автозапуск службы отключён');
+  }
+
+  async function toggleTraySetting() {
+    state.config.MinimizeToTray = !state.config.MinimizeToTray;
+    renderStatus();
+    await request('config.update', { minimizeToTray: state.config.MinimizeToTray });
+  }
+
+  async function updateWatchdogInterval() {
+    const mins = parseInt(document.getElementById('watchdogIntervalSelect').value, 10) || 15;
+    state.config.WatchdogIntervalMin = mins;
+    renderStatus();
+    await request('config.update', { watchdogIntervalMin: mins });
+  }
+
+  function copyLogs() {
+    navigator.clipboard?.writeText(state.logs.join('\n')).then(() => toast('Логи скопированы'));
+  }
+
+  async function clearLogs() {
+    state.logs = [];
+    document.getElementById('logBox').textContent = '';
+    await request('logs.clear');
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function escapeAttr(s) {
+    return String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+
+  // Fallback demo data only when opened outside native WebView2 for standalone preview
+  if (!hasNative) {
+    state.status.Running = true;
+    state.status.Mode = 'process';
+    state.status.Pid = 14820;
+    state.status.UptimeSeconds = 4723;
+    state.probes = [
+      { Id: 'youtube', Name: 'YouTube', Endpoint: 'youtube.com', Ok: true, LatencyMs: 84, Detail: 'HTTP 204' },
+      { Id: 'discord', Name: 'Discord', Endpoint: 'discord.com', Ok: true, LatencyMs: 112, Detail: 'HTTP 200' },
+      { Id: 'voice', Name: 'Голосовой чат', Endpoint: 'gateway.discord.gg', Ok: true, LatencyMs: 96, Detail: 'HTTP 200' },
+      { Id: 'telegram', Name: 'Telegram', Endpoint: 'api.telegram.org', Ok: true, LatencyMs: 65, Detail: 'HTTP 302' }
+    ];
+    state.strategies = [
+      { Name: 'general (ALT)', PreviewArgs: '--wf-tcp=80,443 --dpi-desync=fake,fakedsplit' },
+      { Name: 'general (FAKE TLS AUTO)', PreviewArgs: '--wf-tcp=80,443 --dpi-desync=fake,multidisorder' },
+      { Name: 'general (SIMPLE FAKE)', PreviewArgs: '--wf-tcp=80,443 --dpi-desync=fake' }
+    ];
+    state.hostFiles = ['list-general-user.txt', 'list-general.txt', 'list-exclude-user.txt', 'ipset-all.txt'];
+    state.diag = [
+      { Label: 'Права администратора', Ok: true, Value: 'Активны' },
+      { Label: 'Служба BFE', Ok: true, Value: 'Running' },
+      { Label: 'Драйвер WinDivert', Ok: true, Value: 'Running' },
+      { Label: 'Файлы winws.exe / WinDivert', Ok: true, Value: 'Найдены' },
+      { Label: 'TCP Timestamps', Ok: true, Value: 'Включены' }
+    ];
+    state.logs = ['[17:20:01] Запуск winws.exe (general (ALT), режим: all)'];
+    applyAll();
+    renderDiag();
+  } else {
+    send('app.init');
+  }
+</script>
+</body>
+</html>
